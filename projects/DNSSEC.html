@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DNS Security Simulation — Ryland Porter</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <nav>
+        <a class="brand" href="../index.html">Ryland Porter</a>
+        <div class="links">
+          <a href="../index.html#projects">Projects</a>
+          <a href="../index.html#skills">Skills</a>
+          <a href="https://github.com/rylandp">GitHub</a>
+          <a href="mailto:rylandporter@gmail.com">Email</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <article>
+      <h1>DNS Security Simulation</h1>
+      <p class="meta">Python • TCP/IP • RSA-PSS • SHA-256 • Cryptography</p>
+      <p class="lead">
+        A Python client/server application that demonstrates why digital signatures are essential to DNS integrity. It shows how a client can refuse an altered DNS answer instead of trusting data solely because it came from a server.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/Rylandp/DNS-Security-Simulation">View Source on GitHub</a>
+        <a class="btn" href="../index.html#projects">Back to Projects</a>
+      </div>
+
+      <h2>Overview</h2>
+      <p>
+        The program implements a small DNS-like protocol over a TCP socket. The server stores two example A records, signs a structured response with an RSA private key, and returns the public key and a cryptographic signature. The client validates the response using a public-key file stored locally as its trust anchor.
+      </p>
+
+      <h2>Request and Response Flow</h2>
+      <pre><code>Client                                     Server
+  |                                         |
+  |-- DNS query, transaction ID, nonce ----&gt;|
+  |                                         |-- Look up A record
+  |                                         |-- Build canonical record
+  |                                         |-- Sign with RSA-PSS/SHA-256
+  |&lt;------- Signed DNS-style response -------|
+  |
+  |-- Verify key, identity, freshness,
+  |   transaction, nonce, and signature</code></pre>
+
+      <h2>Security Checks</h2>
+      <ul>
+        <li><strong>Key trust:</strong> the client loads <code>server_public.pem</code> and compares both the response key and key fingerprint against it.</li>
+        <li><strong>Replay protection:</strong> transaction IDs and random nonces bind the response to the original query.</li>
+        <li><strong>Freshness:</strong> each response contains inception and expiration timestamps with a 60-second lifetime.</li>
+        <li><strong>Canonical signing:</strong> name, record type, address, TTL, key ID, timestamps, transaction ID, and nonce are serialized in a deterministic format before signing.</li>
+        <li><strong>Signature verification:</strong> RSA-PSS with SHA-256 detects any change to the signed record fields.</li>
+        <li><strong>Input validation:</strong> record types, IP addresses, response types, and status values are checked before an address is accepted.</li>
+      </ul>
+
+      <h2>Tampering Demonstrations</h2>
+      <p>
+        The client includes commented test mutations for the response address, transaction ID, nonce, expiration, key ID, and signature. Each mutation can be enabled individually to demonstrate rejection. The result is a local security failure rather than a silently accepted modified address.
+      </p>
+
+      <h2>Implementation Details</h2>
+      <p>
+        The server generates a 2048-bit RSA key pair on first run and stores the private key in an encrypted PKCS8 PEM file protected by a user-entered password. Later runs load the existing key pair so signatures remain tied to the same trust anchor.
+      </p>
+      <p>
+        The project also verifies a known-good signature and deliberately alters a signed record in <code>main()</code>, proving that the public key rejects the tampered record with <code>InvalidSignature</code>.
+      </p>
+
+      <h2>Scope and Limitations</h2>
+      <p>
+        This is an educational simulation, not a replacement for DNS or a complete DNSSEC implementation. It does not implement DNS zone hierarchies, DNSSEC chains of trust, DS records, DNSSEC signing keys, UDP queries, caching, or real-world resolver infrastructure. Its purpose is to make the core property of signed DNS data clear: a resolver should validate authenticity and integrity before accepting an answer.
+      </p>
+
+      <h2>Running the Demo</h2>
+      <pre><code>python -m pip install -r requirements.txt
+python secure_message.py</code></pre>
+      <p>In a second terminal:</p>
+      <pre><code>python -c "import secure_message; secure_message.run_client('127.0.0.1', 5300, 'www.example.com', 'A')"</code></pre>
+    </article>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      © 2026 Ryland Porter • <a href="https://github.com/rylandp">GitHub</a> • <a href="mailto:rylandporter@gmail.com">rylandporter@gmail.com</a>
+    </div>
+  </footer>
+</body>
+</html>
