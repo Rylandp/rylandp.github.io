@@ -41,7 +41,7 @@
         <h3><a href="projects/DNSSEC.html">DNS Security Simulation</a></h3>
         <p class="meta">Python • TCP/IP • RSA-PSS • SHA-256 • Cryptography</p>
         <p>
-          A client/server DNS simulation that demonstrates how DNSSEC-style signatures protect the integrity of DNS answers. It uses canonical records, RSA-PSS signatures, a trusted public-key anchor, replay protection, and time-bound responses.
+          Built a Python TCP client/server that signs DNS-style A-record responses with RSA-PSS and requires the client to validate the key, response identity, freshness, and signature. Added one-at-a-time tampering tests that confirm altered address, nonce, transaction ID, key, and signature fields are rejected.
         </p>
         <p>
           <a href="projects/DNSSEC.html">Read the technical case study →</a>  |
